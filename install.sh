@@ -1027,10 +1027,10 @@ main_menu() {
     echo
     echo "📊 Quota & Status"
     echo "  5) 📋 Show status"
-    echo "  6) 🎯 Set / change monthly quota for a panel"
+    echo "  6) 🎯 Set / change monthly account for a panel"
     echo "  7) 🔁 Reset usage (USED_GB/bytes) for a panel"
-    echo "  8) 🧮 Run quota check now (debug output)"
-    echo "  9) ⏱  Enable/Disable automatic quota check (cron)"
+    echo "  8) 🧮 Run check now"
+    echo "  9) ⏱  Enable/Disable automatic (cron)"
     echo
     echo "  0) ❌ Exit"
     echo
