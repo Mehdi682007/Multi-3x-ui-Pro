@@ -7,6 +7,96 @@ set -uo pipefail
 # - Quota monitor (manual/debug + cron mode)
 # Tested on: Ubuntu/Debian (root required)
 
+
+
+########################
+#  Script metadata     #
+########################
+
+SCRIPT_NAME="Multi 3x-ui Manager"
+SCRIPT_VERSION="1.1"
+YOUTUBE_URL="https://www.youtube.com/@ParsDigital/"
+TELEGRAM_URL="https://t.me/+2S96GjBZJ1cxYzVk"
+
+########################
+#  Header / Logo       #
+########################
+
+print_logo() {
+  # رنگ گرادیانی روی لوگوی ASCII
+  local colors=(
+    "\e[38;5;196m"
+    "\e[38;5;202m"
+    "\e[38;5;208m"
+    "\e[38;5;214m"
+    "\e[38;5;220m"
+    "\e[38;5;46m"
+    "\e[38;5;51m"
+    "\e[38;5;27m"
+  )
+  local reset="\e[0m"
+  local i=0
+
+  while IFS= read -r line; do
+    if [[ -z "$line" ]]; then
+      printf "\n"
+      continue
+    fi
+    local color="${colors[i % ${#colors[@]}]}"
+    printf "%b%s%b\n" "$color" "$line" "$reset"
+    ((i++))
+  done << 'EOF'
+   ___  ___                _ _   _   _____                _ 
+  / _ \/   \   /\/\  _   _| | |_(_) |___ /_  __     _   _(_)
+ / /_)/ /\ /  /    \| | | | | __| |   |_ \ \/ /____| | | | |
+/ ___/ /_//  / /\/\ \ |_| | | |_| |  ___) >  <_____| |_| | |
+\/  /___,'   \/    \/\__,_|_|\__|_| |____/_/\_\     \__,_|_|
+                                                            
+EOF
+}
+
+print_title_box() {
+  local text="$1"
+  local padding=2   # spaces left/right
+  local inner_len=$(( ${#text} + padding * 2 ))
+  local box_color="\e[38;5;51m"
+  local reset="\e[0m"
+
+  local top="╔"
+  local bottom="╚"
+  local i
+  for (( i=0; i<inner_len; i++ )); do
+    top+="═"
+    bottom+="═"
+  done
+  top+="╗"
+  bottom+="╝"
+
+  local spaces
+  spaces=$(printf '%*s' "$padding" "")
+  local middle="║${spaces}${text}${spaces}║"
+
+  echo -e "${box_color}${top}${reset}"
+  echo -e "${box_color}${middle}${reset}"
+  echo -e "${box_color}${bottom}${reset}"
+}
+
+print_header() {
+  clear
+  print_logo
+  echo
+  print_title_box "${SCRIPT_NAME}"
+  echo
+  echo -e " 🧩 Version   : \e[35m${SCRIPT_VERSION}\e[0m"
+  echo -e " 🌐 Server IP : \e[36m${SERVER_IP}\e[0m"
+  echo -e " ▶️ YouTube   : \e[34m${YOUTUBE_URL}\e[0m"
+  echo -e " 💬 Telegram  : \e[34m${TELEGRAM_URL}\e[0m"
+  echo "----------------------------------------"
+  echo
+}
+
+
+
 ########################
 #  Global variables    #
 ########################
