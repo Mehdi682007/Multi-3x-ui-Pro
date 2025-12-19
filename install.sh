@@ -28,7 +28,7 @@ META_FILE=""
 SCRIPT_PATH=""
 CRON_TAG="# MULTI_3XUI_QUOTA"
 CRON_EXPR="*/5 * * * *"
-
+TRAFFIC_MODE="tx"
 ########################
 #  Helper functions    #
 ########################
@@ -868,6 +868,8 @@ reset_panel_usage_menu() {
 
 show_status() {
   print_header
+  quota_run "0" || true
+  load_meta
   color_green "🧷 Docker containers (xui_panel_*)"
   echo
 
@@ -897,7 +899,7 @@ show_status() {
 
     echo "📊 Panels summary"
     echo "─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────"
-    printf " %-4s │ %-22s │ %-16s │ %-18s │ %-18s │ %-10s\n" "ID" "URL" "Quota" "Used" "Time" "Status"
+    printf " %-4s │ %-26s │ %-20s │ %-20s │ %-20s │ %-14s\n" "ID" "URL" "Quota" "Used" "Time" "Status"
     echo   "──────┼───────────────────────────────────────┼──────────────────┼────────────────────┼────────────────────┼────────────"
 
     local i
@@ -982,6 +984,14 @@ show_status() {
 human_to_bytes() {
   local v="$1"
   v="${v// /}"
+
+  # Normalize IEC -> SI labels if needed
+  v="${v//KiB/kB}"
+  v="${v//MiB/MB}"
+  v="${v//GiB/GB}"
+  v="${v//TiB/TB}"
+  v="${v//PiB/PB}"
+
   local num unit power
   if [[ "$v" =~ ^([0-9]*\.?[0-9]+)([kMGTPE]?B)$ ]]; then
     num="${BASH_REMATCH[1]}"
@@ -990,6 +1000,7 @@ human_to_bytes() {
     echo 0
     return
   fi
+
   case "$unit" in
     B)  power=0 ;;
     kB) power=1 ;;
@@ -999,6 +1010,7 @@ human_to_bytes() {
     PB) power=5 ;;
     *)  power=0 ;;
   esac
+
   awk -v n="$num" -v p="$power" 'BEGIN {printf "%.0f", n * (1024^p)}'
 }
 
@@ -1043,10 +1055,18 @@ quota_process_panel() {
   rx_str="${rx_str// /}"
   tx_str="${tx_str// /}"
 
+
   local rx_bytes tx_bytes total_bytes
   rx_bytes=$(human_to_bytes "$rx_str")
   tx_bytes=$(human_to_bytes "$tx_str")
-  total_bytes=$(( rx_bytes + tx_bytes ))
+
+  case "${TRAFFIC_MODE}" in
+    rx)  total_bytes="${rx_bytes}" ;;
+    tx)  total_bytes="${tx_bytes}" ;;
+    max) total_bytes=$(( rx_bytes > tx_bytes ? rx_bytes : tx_bytes )) ;;
+    *)   total_bytes=$(( rx_bytes + tx_bytes )) ;;
+  esac
+
 
   if (( last_bytes == 0 )); then
     set_meta "${last_bytes_var}" "${total_bytes}"
